@@ -227,8 +227,9 @@
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SecondaryHueMidBrush}"/>
         <Setter Property="Padding" Value="16 4 16 4"/>
-        <Setter Property="Height" Value="32" />
+        <Setter Property="MinHeight" Value="32" />
         <Setter Property="MinWidth" Value="80" />
+        <Setter Property="BorderThickness" Value="0 0 0 2" />
         <Setter Property="wpf:RippleAssist.Feedback" Value="{DynamicResource MaterialDesignFlatButtonRipple}" />
         <Setter Property="TextBlock.FontWeight" Value="Medium"/>
         <Setter Property="TextBlock.FontSize" Value="14"/>
@@ -275,12 +276,17 @@
                             <Setter TargetName="SelectionHighlightBorder" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.23"/>
+                            <Setter Property="Opacity" Value="0.38"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Foreground" Value="{Binding BorderBrush, RelativeSource={RelativeSource Mode=Self}}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style x:Key="MaterialDesignTabRadioButtonLeft"  TargetType="{x:Type RadioButton}" BasedOn="{StaticResource MaterialDesignTabRadioButton}">
         <Setter Property="BorderThickness" Value="2 0 0 0" />

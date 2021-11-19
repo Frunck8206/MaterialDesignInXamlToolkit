@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -167,7 +168,7 @@ namespace MaterialDesignThemes.UITests.WPF.TextBoxes
 </Grid>");
             var textBox = await grid.GetElement<TextBox>("/TextBox");
             var helpTextBlock = await textBox.GetElement<TextBlock>("/Grid/Canvas/TextBlock");
-            
+
             double fontSize = await helpTextBlock.GetFontSize();
 
             Assert.Equal(20, fontSize);
@@ -299,9 +300,73 @@ namespace MaterialDesignThemes.UITests.WPF.TextBoxes
 ");
             var hint = await textBox.GetElement<SmartHint>("Hint");
             Point offset = await hint.GetFloatingOffset();
-            
+
             Assert.Equal(1, offset.X);
             Assert.Equal(-42, offset.Y);
+
+            recorder.Success();
+        }
+
+        [Fact]
+        [Description("Issue 2390")]
+        public async Task ContextMenu_FollowsTextBoxFontFamily()
+        {
+            await using var recorder = new TestRecorder(App);
+
+            var textBox = await LoadXaml<TextBox>(@"<TextBox FontFamily=""Times New Roman""/>");
+
+            await textBox.RightClick();
+
+            var contextMenu = await textBox.GetElement<ContextMenu>(".ContextMenu");
+
+            var textBoxFont = await textBox.GetFontFamily();
+            Assert.Equal("Times New Roman", textBoxFont?.FamilyNames.Values.First());
+            Assert.Equal(textBoxFont, await contextMenu.GetFontFamily());
+
+            recorder.Success();
+        }
+
+        [Fact]
+        [Description("Issue 2390")]
+        public async Task ContextMenu_UsesInheritedFontFamily()
+        {
+            await using var recorder = new TestRecorder(App);
+
+            var stackPanel = await LoadXaml<StackPanel>(@"
+<StackPanel TextElement.FontFamily=""Times New Roman"">
+    <TextBox />
+</StackPanel>
+");
+            var textBox = await stackPanel.GetElement<TextBox>("/TextBox");
+            await textBox.RightClick();
+
+            var contextMenu = await textBox.GetElement<ContextMenu>(".ContextMenu");
+
+            var textBoxFont = await textBox.GetFontFamily();
+            Assert.Equal("Times New Roman", textBoxFont?.FamilyNames.Values.First());
+            Assert.Equal(textBoxFont, await contextMenu.GetFontFamily());
+
+            recorder.Success();
+        }
+
+        [Fact]
+        [Description("Issue 2430")]
+        public async Task VerticalContentAlignment_ProperlyAlignsText()
+        {
+            await using var recorder = new TestRecorder(App);
+
+            var textBox = await LoadXaml<TextBox>($@"
+    <TextBox Height=""100"" Text=""Test""/>
+");
+            
+            var scrollViewer = await textBox.GetElement<ScrollViewer>("PART_ContentHost");
+            Assert.Equal(VerticalAlignment.Top, await scrollViewer.GetVerticalAlignment());
+
+            foreach (var alignment in Enum.GetValues<VerticalAlignment>())
+            {
+                await textBox.SetVerticalContentAlignment(alignment);
+                Assert.Equal(alignment, await scrollViewer.GetVerticalAlignment());
+            }
 
             recorder.Success();
         }
